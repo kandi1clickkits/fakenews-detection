@@ -17,7 +17,7 @@ SET PATCH_VERSION=%PY_VERSION:~4,2%
 SET PY_MM_VERSION=%MAJOR_VERSION%.%MINOR_VERSION%
 SET PY_LOCATION=C:\kandikits\python\%PY_VERSION%
 SET PY_DOWNLOAD_URL=https://www.python.org/ftp/python/%PY_VERSION%/python-%PY_VERSION%-embed-amd64.zip
-
+SET MS_VC_REDIST_URL=https://aka.ms/vs/17/release/vs_BuildTools.exe
 SET REPO_DOWNLOAD_URL=https://github.com/kandi1clickkits/fakenews-detection/releases/download/v1.0.0/fakenews-detection.zip
 SET REPO_DEPENDENCIES_URL=https://github.com/kandi1clickkits/fakenews-detection/raw/main/requirements.txt
 SET REPO_NAME=fakenews-detection.zip
@@ -39,8 +39,12 @@ IF EXIST !WORKING_DIR!\ (
 CD /D !WORKING_DIR!
 SET STARTTIME=%TIME%
 CALL :LOG "START TIME : %TIME%"
-TITLE Installing %KIT_NAME% kit 5%% xxxxx_______________________________________________________________________________________________
+TITLE Installing %KIT_NAME% kit 5%% 
 
+CALL :Install_ms_vc_redist
+IF ERRORLEVEL 1 (
+	CALL :Show_Error_And_Exit
+)
 CALL :Main
 CALL :exit_spinner
 ECHO "%KIT_NAME% kit installed at location : !WORKING_DIR!"
@@ -112,8 +116,8 @@ IF ERRORLEVEL 1 (
 		   timeout 1  >nul
 		   for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 			<nul set/p"=->!CR!"
-		   ECHO 2. A valid python is detected at system level hence skipping python installation and proceeding with installing dependencies
-			CALL :LOG "A valid python is detected at system level"
+		   ECHO 2. A valid python is detected at system level hence skipping python installation
+			CALL :LOG "A valid python is detected at system level and hence installing dependent modules ..."
 			CALL :Install_dependencies
 			IF ERRORLEVEL 1 (
 			   SET ERROR_MSG=ERROR: While installing python !PY_VERSION! in !PY_LOCATION!
@@ -131,30 +135,29 @@ EXIT /B 0
 
 :Download_repo
 IF EXIST !WORKING_DIR!\%EXTRACTED_REPO_DIR%\ (
-    CALL :LOG "%REPO_NAME% already available in location"
+    CALL :LOG "%REPO_NAME% already downloaded"
 	 timeout 1  >nul
 	 for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 	 <nul set/p"=->!CR!"
-	 ECHO 3. Repo already available in the location !WORKING_DIR!.
+	 ECHO 4. Repo already downloaded
 	 TITLE Installing %KIT_NAME% kit 100%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
 ) ELSE (
-    	bitsadmin /transfer repo_download_job /download /priority foreground %REPO_DOWNLOAD_URL% "!WORKING_DIR!\%REPO_NAME%" >> !WORKING_DIR!\log.txt 2>&1
-	CALL :LOG "Repo downloaded successfully"
-	TITLE Installing %KIT_NAME% kit 80%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx____________________
-    	timeout 1  >nul
+    bitsadmin /transfer repo_download_job /download /priority foreground %REPO_DOWNLOAD_URL% "!WORKING_DIR!\%REPO_NAME%" >> !WORKING_DIR!\log.txt 2>&1
+	 CALL :LOG "Repo downloaded successfully"
+	 TITLE Installing %KIT_NAME% kit 80%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx____________________
+    timeout 1  >nul
 	for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 	<nul set/p"=->!CR!"
-	ECHO 3. Repo installed
-    	CALL :LOG "Extracting the repo ..."
-    	tar -xvf %REPO_NAME% >> !WORKING_DIR!\log.txt 2>&1
-    	TITLE Installing %KIT_NAME% kit 100%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx__________
+	ECHO 4. Repo installed
+    CALL :LOG "Extracting the repo ..."
+    tar -xvf %REPO_NAME% >> !WORKING_DIR!\log.txt 2>&1
+    TITLE Installing %KIT_NAME% kit 100%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    timeout 1  >nul
 	for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 	<nul set/p"=->!CR!"
-	ECHO 4. Repo extracted
+	ECHO 5. Repo extracted
 )
 EXIT /B 0	
-
 
 :Install_python_and_modules
 CALL :LOG "Downloading python %PY_VERSION% ... "
@@ -167,6 +170,7 @@ IF ERRORLEVEL 1 (
     EXIT /B 1
 )
 CALL :LOG "Installing python %PY_VERSION% ..."
+REM python-%PY_VERSION%-amd64.exe /quiet InstallAllUsers=0 PrependPath=0 Include_test=0 TargetDir=%PY_LOCATION%
 CD "!WORKING_DIR!\%PY_VERSION%"
 tar -xvf "python-%PY_VERSION%-embed-amd64.zip" >> !WORKING_DIR!\log.txt 2>&1
 IF ERRORLEVEL 1 (
@@ -175,7 +179,9 @@ IF ERRORLEVEL 1 (
 )
 DEL "python-%PY_VERSION%-embed-amd64.zip" >> !WORKING_DIR!\log.txt 2>&1
 CD "%cd%\.."
-
+REM SET MAJOR_VERSION=%PY_VERSION:~0,1%
+REM SET MINOR_VERSION=%PY_VERSION:~2,1%
+REM SET PATCH_VERSION=%PY_VERSION:~4,2%
 MOVE "!WORKING_DIR!\%PY_VERSION%\python%MAJOR_VERSION%%MINOR_VERSION%._pth" "!WORKING_DIR!\%PY_VERSION%\python%MAJOR_VERSION%%MINOR_VERSION%.pth" >> !WORKING_DIR!\log.txt 2>&1
 mkdir "!WORKING_DIR!\%PY_VERSION%\DLLs" >> !WORKING_DIR!\log.txt 2>&1
 mkdir "%PY_LOCATION%" >> !WORKING_DIR!\log.txt 2>&1
@@ -198,7 +204,7 @@ IF ERRORLEVEL 1 (
 		timeout 1  >nul
 		for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 		<nul set/p"=->!CR!"
-		ECHO 1. python version !PY_VERSION! installed and proceeding with installing dependencies
+		ECHO 2. python version !PY_VERSION! installed
 		CALL :Install_dependencies
 		IF ERRORLEVEL 1 (
 			EXIT /B 1
@@ -208,16 +214,41 @@ IF ERRORLEVEL 1 (
 	)	
 )
 
+:Install_ms_vc_redist
+IF EXIST "!WORKING_DIR!\vs_BuildTools.exe" (
+    CALL :LOG "Microsoft Visual C++ Redistributable already downloaded"
+) ELSE (
+    CALL :LOG "Downloading Microsoft Visual C++ Redistributable ..." 
+    bitsadmin /transfer vc_redist_download_job /download /priority foreground %MS_VC_REDIST_URL% "!WORKING_DIR!\vs_BuildTools.exe" >> !WORKING_DIR!\log.txt 2>&1
+)
+REM curl -o vs_BuildTools.exe %MS_VC_REDIST_URL%
+REM bitsadmin /transfer vc_redist_download_job /download %MS_VC_REDIST_URL% "%cd%\vs_BuildTools.exe"
+CALL :LOG "Installing Microsoft Visual C++ Redistributable ..."
+!WORKING_DIR!\vs_buildtools.exe --quiet --norestart --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.VC.CMake.Project --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.TestTools.BuildTools --add Microsoft.VisualStudio.Component.Windows10SDK.19041
+IF ERRORLEVEL 1 (
+		SET ERROR_MSG=ERROR: There was an error while installing Microsoft Visual C++ Redistributable
+		CALL :Show_Error_And_Exit
+		EXIT /B 1
+) ELSE (
+	CALL :LOG "Microsoft Visual C++ Redistributable has been installed"
+	TITLE Installing %KIT_NAME% kit 10%% xxxxxxxxxx__________________________________________________________________________________________
+	timeout 1  >nul
+	for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
+	<nul set/p"=->!CR!"
+	ECHO 1. Microsoft Visual C++ Redistributable installed
+)
+EXIT /B 0
+
 
 :Install_dependencies
 CALL :LOG "Installing dependent modules ..."
 bitsadmin /transfer dependency_download_job /download /priority foreground %REPO_DEPENDENCIES_URL% "!WORKING_DIR!\requirements.txt" >> !WORKING_DIR!\log.txt 2>&1
 CALL :LOG "!PATH!"
 python -m pip install virtualenv >> !WORKING_DIR!\log.txt 2>&1
-python -m virtualenv %VIRTUALENV_NAME%>> !WORKING_DIR!\log.txt 2>&1
+python -m virtualenv kkit >> !WORKING_DIR!\log.txt 2>&1
 REM python -m venv kkit
 pushd .
-cd .\%VIRTUALENV_NAME%\Scripts
+cd .\kkit\Scripts
 CALL :LOG "%cd%"
 CALL .\activate.bat
 popd
@@ -228,7 +259,7 @@ TITLE Installing %KIT_NAME% kit 60%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 timeout 1  >nul
 for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 <nul set/p"=->!CR!"
-ECHO 2. Dependencies installed 
+ECHO 3. Dependencies installed
 EXIT /B 0
 
 :Show_Error_And_Exit
@@ -246,6 +277,7 @@ ECHO %~1 >> !WORKING_DIR!\log.txt 2>&1
 
 ::spinner
 exit /b
+
 :start_spinner
 if defined __spin__ goto spin
 set "__spin__=1"
