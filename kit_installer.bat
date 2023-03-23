@@ -40,10 +40,7 @@ CD /D !WORKING_DIR!
 SET STARTTIME=%TIME%
 CALL :LOG "START TIME : %TIME%"
 TITLE Installing %KIT_NAME% kit 5%% xxxxx_______________________________________________________________________________________________
-CALL :Install_ms_vc_redist
-IF ERRORLEVEL 1 (
-	CALL :Show_Error_And_Exit
-)
+
 CALL :Main
 CALL :exit_spinner
 ECHO "%KIT_NAME% kit installed at location : !WORKING_DIR!"
@@ -151,10 +148,7 @@ IF EXIST !WORKING_DIR!\%EXTRACTED_REPO_DIR%\ (
 	ECHO 4. Repo installed
     	CALL :LOG "Extracting the repo ..."
     	tar -xvf %REPO_NAME% >> !WORKING_DIR!\log.txt 2>&1
-    	TITLE Installing %KIT_NAME% kit 90%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx__________
-	CALL :Download_image
-    	TITLE Installing %KIT_NAME% kit 100%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    	timeout 1  >nul
+    	TITLE Installing %KIT_NAME% kit 100%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx__________
 	for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 	<nul set/p"=->!CR!"
 	ECHO 5. Repo extracted
