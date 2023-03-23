@@ -9,7 +9,6 @@ ECHO 	Based on your network speed, the installation may take a while
 ECHO======================================================================================
 SET KIT_NAME=fakenews-detection
 SET WORKING_DIR=C:\kandikits\!KIT_NAME!
-REM update below path if required
 SET PY_VERSION=3.9.8
 SET MAJOR_VERSION=%PY_VERSION:~0,1%
 SET MINOR_VERSION=%PY_VERSION:~2,1%
@@ -27,6 +26,7 @@ SET GET_PIP_LOCATION=https://bootstrap.pypa.io/get-pip.py
 SET VIRTUALENV_NAME=fakenews-detection-env
 SET ERROR_MSG=ERROR:There was an error while installing the kit
 SET LOG_REDIRECT_LOCATION=!WORKING_DIR!\log.txt 2>&1
+
 IF EXIST "!WORKING_DIR!\log.txt" (
     DEL !WORKING_DIR!\log.txt
 )
@@ -35,12 +35,11 @@ IF EXIST !WORKING_DIR!\ (
 ) ELSE (
     mkdir !WORKING_DIR!
 )
-
+REM CD /D !WORKING_DIR!
 CD /D !WORKING_DIR!
 SET STARTTIME=%TIME%
 CALL :LOG "START TIME : %TIME%"
-TITLE Installing %KIT_NAME% kit 5%% 
-
+TITLE Installing %KIT_NAME% kit 5%% xxxxx_______________________________________________________________________________________________
 CALL :Install_ms_vc_redist
 IF ERRORLEVEL 1 (
 	CALL :Show_Error_And_Exit
@@ -116,8 +115,8 @@ IF ERRORLEVEL 1 (
 		   timeout 1  >nul
 		   for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 			<nul set/p"=->!CR!"
-		   ECHO 2. A valid python is detected at system level hence skipping python installation
-			CALL :LOG "A valid python is detected at system level and hence installing dependent modules ..."
+		   ECHO 2. A valid python is detected at system level hence skipping python installation and proceeding with installing dependencies
+			CALL :LOG "A valid python is detected at system level"
 			CALL :Install_dependencies
 			IF ERRORLEVEL 1 (
 			   SET ERROR_MSG=ERROR: While installing python !PY_VERSION! in !PY_LOCATION!
@@ -135,24 +134,26 @@ EXIT /B 0
 
 :Download_repo
 IF EXIST !WORKING_DIR!\%EXTRACTED_REPO_DIR%\ (
-    CALL :LOG "%REPO_NAME% already downloaded"
+    CALL :LOG "%REPO_NAME% already available in location"
 	 timeout 1  >nul
 	 for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 	 <nul set/p"=->!CR!"
-	 ECHO 4. Repo already downloaded
+	 ECHO 4. Repo already available in the location !WORKING_DIR!. Please delete the repo and re run the script to download latest code.
 	 TITLE Installing %KIT_NAME% kit 100%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
 ) ELSE (
-    bitsadmin /transfer repo_download_job /download /priority foreground %REPO_DOWNLOAD_URL% "!WORKING_DIR!\%REPO_NAME%" >> !WORKING_DIR!\log.txt 2>&1
-	 CALL :LOG "Repo downloaded successfully"
-	 TITLE Installing %KIT_NAME% kit 80%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx____________________
-    timeout 1  >nul
+    	bitsadmin /transfer repo_download_job /download /priority foreground %REPO_DOWNLOAD_URL% "!WORKING_DIR!\%REPO_NAME%" >> !WORKING_DIR!\log.txt 2>&1
+	CALL :LOG "Repo downloaded successfully"
+	TITLE Installing %KIT_NAME% kit 80%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx____________________
+    	timeout 1  >nul
 	for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 	<nul set/p"=->!CR!"
 	ECHO 4. Repo installed
-    CALL :LOG "Extracting the repo ..."
-    tar -xvf %REPO_NAME% >> !WORKING_DIR!\log.txt 2>&1
-    TITLE Installing %KIT_NAME% kit 100%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    timeout 1  >nul
+    	CALL :LOG "Extracting the repo ..."
+    	tar -xvf %REPO_NAME% >> !WORKING_DIR!\log.txt 2>&1
+    	TITLE Installing %KIT_NAME% kit 90%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx__________
+    	TITLE Installing %KIT_NAME% kit 100%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    	timeout 1  >nul
 	for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 	<nul set/p"=->!CR!"
 	ECHO 5. Repo extracted
@@ -204,7 +205,7 @@ IF ERRORLEVEL 1 (
 		timeout 1  >nul
 		for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 		<nul set/p"=->!CR!"
-		ECHO 2. python version !PY_VERSION! installed
+		ECHO 2. python version !PY_VERSION! installed and proceeding with installing dependencies
 		CALL :Install_dependencies
 		IF ERRORLEVEL 1 (
 			EXIT /B 1
@@ -245,10 +246,10 @@ CALL :LOG "Installing dependent modules ..."
 bitsadmin /transfer dependency_download_job /download /priority foreground %REPO_DEPENDENCIES_URL% "!WORKING_DIR!\requirements.txt" >> !WORKING_DIR!\log.txt 2>&1
 CALL :LOG "!PATH!"
 python -m pip install virtualenv >> !WORKING_DIR!\log.txt 2>&1
-python -m virtualenv kkit >> !WORKING_DIR!\log.txt 2>&1
+python -m virtualenv %VIRTUALENV_NAME%>> !WORKING_DIR!\log.txt 2>&1
 REM python -m venv kkit
 pushd .
-cd .\kkit\Scripts
+cd .\%VIRTUALENV_NAME%\Scripts
 CALL :LOG "%cd%"
 CALL .\activate.bat
 popd
@@ -259,7 +260,7 @@ TITLE Installing %KIT_NAME% kit 60%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 timeout 1  >nul
 for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 <nul set/p"=->!CR!"
-ECHO 3. Dependencies installed
+ECHO 3. Dependencies installed 
 EXIT /B 0
 
 :Show_Error_And_Exit
@@ -277,7 +278,6 @@ ECHO %~1 >> !WORKING_DIR!\log.txt 2>&1
 
 ::spinner
 exit /b
-
 :start_spinner
 if defined __spin__ goto spin
 set "__spin__=1"
