@@ -135,7 +135,7 @@ IF EXIST !WORKING_DIR!\%EXTRACTED_REPO_DIR%\ (
 	 timeout 1  >nul
 	 for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 	 <nul set/p"=->!CR!"
-	 ECHO 4. Repo already available in the location !WORKING_DIR!.
+	 ECHO 3. Repo already available in the location !WORKING_DIR!.
 	 TITLE Installing %KIT_NAME% kit 100%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 ) ELSE (
@@ -145,13 +145,13 @@ IF EXIST !WORKING_DIR!\%EXTRACTED_REPO_DIR%\ (
     	timeout 1  >nul
 	for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 	<nul set/p"=->!CR!"
-	ECHO 4. Repo installed
+	ECHO 3. Repo installed
     	CALL :LOG "Extracting the repo ..."
     	tar -xvf %REPO_NAME% >> !WORKING_DIR!\log.txt 2>&1
     	TITLE Installing %KIT_NAME% kit 100%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx__________
 	for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 	<nul set/p"=->!CR!"
-	ECHO 5. Repo extracted
+	ECHO 4. Repo extracted
 )
 EXIT /B 0	
 
@@ -198,7 +198,7 @@ IF ERRORLEVEL 1 (
 		timeout 1  >nul
 		for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 		<nul set/p"=->!CR!"
-		ECHO 2. python version !PY_VERSION! installed and proceeding with installing dependencies
+		ECHO 1. python version !PY_VERSION! installed and proceeding with installing dependencies
 		CALL :Install_dependencies
 		IF ERRORLEVEL 1 (
 			EXIT /B 1
@@ -228,7 +228,7 @@ TITLE Installing %KIT_NAME% kit 60%% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 timeout 1  >nul
 for /f %%A in ('copy /Z "%~dpf0" nul') do set "CR=%%A"
 <nul set/p"=->!CR!"
-ECHO 3. Dependencies installed 
+ECHO 2. Dependencies installed 
 EXIT /B 0
 
 :Show_Error_And_Exit
